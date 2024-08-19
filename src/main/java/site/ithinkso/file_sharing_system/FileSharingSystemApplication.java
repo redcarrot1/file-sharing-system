@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class FileSharingSystemApplication {
 
-	public static void main(String[] args)	 {
-		SpringApplication.run(FileSharingSystemApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(FileSharingSystemApplication.class, args);
+    }
 
 }
