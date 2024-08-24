@@ -38,11 +38,11 @@ public class InitialData {
         DirectoryEntity dir3 = saveDirectory(dir1, "dir3");
         root.increaseDirectoryCount(1);
 
-        saveFile(root, "file1", 100);
-        saveFile(root, "file2", 200);
-        saveFile(dir1, "file3", 300);
-        saveFile(dir2, "file4", 400);
-        saveFile(dir3, "file5", 500);
+        saveFile(root, "file1.txt", 100);
+        saveFile(root, "file2.txt", 200);
+        saveFile(dir1, "file3.txt", 300);
+        saveFile(dir2, "file4.txt", 400);
+        saveFile(dir3, "file5.txt", 500);
 
         root.increaseFileInformation(3, 1200);
         dir1.increaseFileInformation(1, 500);
