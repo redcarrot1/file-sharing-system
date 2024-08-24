@@ -29,15 +29,19 @@ public class DirectoryEntity extends MetaData {
 
     public void addChildren(List<? extends MetaData> metaData) {
         for (MetaData metaDatum : metaData) {
-            if (metaDatum.getStructure() == Structure.FILE) {
-                this.fileCount++;
-                this.totalByteSize += ((FileEntity) metaDatum).getByteSize();
-            }
-            else {
-                this.directoryCount++;
-            }
+            addChild(metaDatum);
         }
-        this.children.addAll(metaData);
+    }
+
+    public void addChild(MetaData metaData) {
+        if (metaData.getStructure() == Structure.FILE) {
+            this.fileCount++;
+            this.totalByteSize += ((FileEntity) metaData).getByteSize();
+        }
+        else {
+            this.directoryCount++;
+        }
+        this.children.add(metaData);
     }
 
     public void increaseFileInformation(long fileCount, long totalByteSize) {

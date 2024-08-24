@@ -1,48 +1,54 @@
 package site.ithinkso.file_sharing_system.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
+import site.ithinkso.file_sharing_system.repository.DirectoryRepository;
 import site.ithinkso.file_sharing_system.repository.FileRepository;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileUploadService {
 
     @Value("${file.dir}")
     private String fileDir;
 
     private final FileRepository fileRepository;
+    private final DirectoryRepository directoryRepository;
 
     public List<FileEntity> saveFiles(String directoryPath, List<MultipartFile> multipartFiles) {
-        DirectoryEntity parent = fileRepository.findDirectoryByPath(directoryPath);
+        DirectoryEntity parent = directoryRepository.findByPath(directoryPath)
+                .orElseThrow(() -> new IllegalArgumentException("Directory not found"));
 
-        List<FileEntity> storedFiles = new ArrayList<>();
-        for (MultipartFile multipartFile : multipartFiles) {
-            if (!multipartFile.isEmpty()) {
-                try {
-                    FileEntity fileEntity = storeFile(parent, multipartFile);
-                    storedFiles.add(fileEntity);
-                } catch (IOException e) {
-                    e.printStackTrace(); // TODO
-                }
-            }
-        }
-
+        List<FileEntity> storedFiles = multipartFiles.stream()
+                .filter(multipartFile -> !multipartFile.isEmpty())
+                .map(multipartFile -> {
+                    try {
+                        return storeFile(parent, multipartFile);
+                    } catch (IOException e) {
+                        log.error("Error occurred while storing file", e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
         fileRepository.saveAll(storedFiles);
+
         parent.addChildren(storedFiles);
-        fileRepository.updateEntity(parent);
+        directoryRepository.updateEntity(parent);
 
         long totalByteSize = storedFiles.stream()
                 .mapToLong(FileEntity::getByteSize)
@@ -53,7 +59,7 @@ public class FileUploadService {
         }
 
         DirectoryEntity grandparent = parent.getParent();
-        fileRepository.updateUptoRoot(grandparent.getId(), storedFiles.size(), 0, totalByteSize);
+        directoryRepository.updateDirectoryUptoRoot(grandparent.getId(), storedFiles.size(), 0, totalByteSize);
 
         return storedFiles;
     }

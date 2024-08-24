@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import site.ithinkso.file_sharing_system.controller.response.DataListResponse;
 import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
+import site.ithinkso.file_sharing_system.service.DirectoryService;
 import site.ithinkso.file_sharing_system.service.FileDownloadService;
-import site.ithinkso.file_sharing_system.service.FileExplorerService;
 import site.ithinkso.file_sharing_system.service.FileUploadService;
 
 import java.util.List;
@@ -22,12 +22,12 @@ import java.util.List;
 public class FileController {
 
     private final FileUploadService uploadService;
-    private final FileExplorerService explorerService;
+    private final DirectoryService directoryService;
     private final FileDownloadService downloadService;
 
     @GetMapping
     public String findData(@RequestParam(value = "path", defaultValue = "/") String path, Model model) {
-        DirectoryEntity directory = explorerService.findDirectory(path);
+        DirectoryEntity directory = directoryService.findDirectory(path);
 
         DataListResponse data = new DataListResponse(directory);
         model.addAttribute("data", data);
