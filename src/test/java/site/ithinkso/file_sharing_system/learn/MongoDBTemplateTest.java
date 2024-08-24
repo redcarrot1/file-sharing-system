@@ -57,6 +57,22 @@ class MongoDBTemplateTest {
     }
 
     @Test
+    @DisplayName("insert and find with null id")
+    void test6() {
+        // given
+        mongoOps.insert(new Common(null, "data", null));
+
+        // when
+        Common result = mongoOps.query(Common.class)
+                .matching(where("name").is("data"))
+                .firstValue();
+
+        // then
+        assertThat(result.getId()).isNotNull();
+        assertThat(result.getName()).isEqualTo("data");
+    }
+
+    @Test
     @DisplayName("object의 @Document(collection=) 보다 직접 collection 이름을 지정한게 우선순위가 높다.")
     void test2() {
         // given

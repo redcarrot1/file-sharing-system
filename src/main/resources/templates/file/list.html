@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta th:replace="~{fragment/head :: headFrag('파일 목록')}"/>
+    <meta th:replace="~{fragment/head :: styleFrag}"/>
+</head>
+<body>
+<div class="form">
+
+    현재 폴더 경로 <span th:text="${data.directoryFullPath}">0</span> <br/>
+    파일 개수: <span th:text="${data.fileCount}">0</span> <br/>
+    폴더 개수: <span th:text="${data.directoryCount}">0</span> <br/>
+    하위 데이터 크기(byte): <span th:text="${data.totalByteSize}">0</span>
+    <br/>
+    <button class="w-50 btn btn-warning btn-sm" onclick="history.back()">뒤로가기</button>
+    <br/>
+    <br/>
+
+    <form action="/files" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="path" th:value="${data.directoryFullPath}">
+        <input type="file" multiple="multiple" name="files">
+        <input type="submit"/>
+    </form>
+
+    <br/>
+
+    <h2>폴더</h2>
+    <table class="table table-striped table-hover"
+           style="white-space: nowrap; max-width: 50%; margin-left:auto; margin-right:auto;">
+        <thead>
+        <tr>
+            <th scope="col">이름</th>
+            <th scope="col">파일 개수</th>
+            <th scope="col">폴더 개수</th>
+            <th scope="col">하위 데이터 크기(byte)</th>
+            <th scope="col">생성일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="dirctory : ${data.directories}">
+            <td>
+                <a th:href="@{'/files?path=' + ${dirctory.directoryFullPath}}"
+                   th:text="${dirctory.name}">0</a>
+            </td>
+            <td th:text="${dirctory.fileCount}">-1</td>
+            <td th:text="${dirctory.directoryCount}">-1</td>
+            <td th:text="${dirctory.totalByteSize}">-1</td>
+            <td th:text="${#temporals.format(dirctory.createdAt, 'yyyy-MM-dd HH:mm:ss')}">yyyy-MM-dd HH:mm:ss</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <br/>
+
+    <h2>파일</h2>
+    <table class="table table-striped table-hover"
+           style="white-space: nowrap; max-width: 50%; margin-left:auto; margin-right:auto;">
+        <thead>
+        <tr>
+            <th>이름</th>
+            <th>데이터 크기(byte)</th>
+            <th>생성일</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="file : ${data.files}">
+            <td th:text="${file.name}">-1</td>
+            <td th:text="${file.byteSize}">-1</td>
+            <td th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm:ss')}">yyyy-MM-dd HH:mm:ss</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
