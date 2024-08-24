@@ -70,6 +70,7 @@
             <th>이름</th>
             <th>데이터 크기(byte)</th>
             <th>생성일</th>
+            <th>다운로드</th>
         </tr>
         </thead>
         <tbody>
@@ -77,6 +78,9 @@
             <td th:text="${file.name}">-1</td>
             <td th:text="${file.byteSize}">-1</td>
             <td th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm:ss')}">yyyy-MM-dd HH:mm:ss</td>
+            <td>
+                <a th:href="@{'/files/download?id=' + ${file.getId()}}">다운로드</a>
+            </td>
         </tr>
         </tbody>
     </table>

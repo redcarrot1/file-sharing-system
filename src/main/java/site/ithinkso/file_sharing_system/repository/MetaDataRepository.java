@@ -8,12 +8,18 @@ import org.springframework.stereotype.Repository;
 import site.ithinkso.file_sharing_system.domain.MetaData;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 class MetaDataRepository {
 
     private final MongoOperations mongoOps;
+
+    public <T> Optional<T> findById(String id, Class<T> entityClass) {
+        T entity = mongoOps.findById(id, entityClass);
+        return Optional.ofNullable(entity);
+    }
 
     public MetaData save(MetaData storedFile) {
         return mongoOps.insert(storedFile);
