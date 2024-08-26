@@ -3,6 +3,44 @@
 <head>
     <meta th:replace="~{fragment/head :: headFrag('파일 목록')}"/>
     <meta th:replace="~{fragment/head :: styleFrag}"/>
+    <script>
+        function upDir() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let path = urlParams.get('path');
+
+            if (path) {
+                const pathArray = path.split('/').filter(Boolean);
+                pathArray.pop();
+                const newPath = pathArray.length > 0 ? '/' + pathArray.join('/') + '/' : '/';
+
+                window.location.href = `${window.location.origin}${window.location.pathname}?path=${newPath}`;
+            } else {
+                alert("현재 URL에 path 파라미터가 없습니다.");
+            }
+        }
+
+        function validateFileUpload() {
+            const files = document.getElementById('files').files;
+            if (files.length === 0) {
+                alert("파일을 선택해주세요.");
+                return false;
+            }
+            return true;
+        }
+
+        function validateFolderName() {
+            const folderName = document.getElementById('name').value.trim();
+            if (!folderName) {
+                alert("폴더명을 입력해주세요.");
+                return false;
+            }
+            if (folderName.includes('/')) {
+                alert("폴더명에 '/'는 포함될 수 없습니다.");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
 <div class="form">
@@ -10,39 +48,55 @@
     현재 폴더 경로 <span th:text="${data.directoryFullPath}">0</span> <br/>
     파일 개수: <span th:text="${data.fileCount}">0</span> <br/>
     폴더 개수: <span th:text="${data.directoryCount}">0</span> <br/>
-    하위 데이터 크기(byte): <span th:text="${data.totalByteSize}">0</span>
+    하위 데이터 크기:
+
+    <span th:if="${data.totalByteSize lt 1000}"
+          th:text="${data.totalByteSize} + ' bytes'">0</span>
+    <span th:if="${1000 le data.totalByteSize and data.totalByteSize lt 1000000}"
+          th:text="${data.totalByteSize * 1.0 / 1000} + ' KB'">0</span>
+    <span th:if="${1000000 le data.totalByteSize and data.totalByteSize lt 1000000000}"
+          th:text="${data.totalByteSize * 1.0 / 1000000 + ' MB'}">0</span>
+    <span th:if="${1000000000 le data.totalByteSize}"
+          th:text="${data.totalByteSize * 1.0 / 1000000000 + ' GB'}">0</span>
+
+    <span th:text="' ('+${#numbers.formatInteger(data.totalByteSize, 3, 'COMMA') + ' bytes)'}">0</span>
     <br/>
-    <button class="w-50 btn btn-warning btn-sm" onclick="history.back()">뒤로가기</button>
+
+    <button th:unless="${#strings.equals(param.path, '/')}" class="btn btn-warning btn-sm" onclick="upDir()"
+            style="text-align: center">
+        상위폴더로 이동
+    </button>
     <br/>
     <br/>
 
-    <form action="/files" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="path" th:value="${data.directoryFullPath}">
-        <input type="file" multiple="multiple" name="files">
-        <button class="w-50 btn btn-primary btn-sm" type="submit">파일 업로드</button>
-    </form>
-
-    <br/>
-
-    <form action="/directories" method="post">
-        <div class="form-floating">
-            <input type="text" name="name" id="name" class="form-control" placeholder="폴더명">
-            <label for="name">폴더명</label>
-            <button class="w-50 btn btn-primary btn-sm" type="submit">폴더 생성</button>
+    <form action="/files" method="post" enctype="multipart/form-data" onsubmit="return validateFileUpload()">
+        <div class="input-group">
+            <input type="hidden" name="path" th:value="${data.directoryFullPath}">
+            <input type="file" multiple="multiple" class="form-control" id="files" name="files"
+                   aria-describedby="fileUploadBt" aria-label="Upload">
+            <button class="btn btn-outline-secondary" type="submit" id="fileUploadBt">Upload</button>
         </div>
     </form>
+    <br/>
 
+    <form action="/directories" method="post" style="text-align: center" onsubmit="return validateFolderName()">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="name" id="name"
+                   placeholder="폴더명" aria-label="폴더명" aria-describedby="button-addon2">
+            <button class="btn btn-outline-secondary" type="submit" id="button-addon2">폴더 생성</button>
+        </div>
+    </form>
     <br/>
 
     <h2>폴더</h2>
     <table class="table table-striped table-hover"
            style="white-space: nowrap; max-width: 50%; margin-left:auto; margin-right:auto;">
         <thead>
-        <tr>
+        <tr style="text-align: center">
             <th scope="col">이름</th>
             <th scope="col">파일 개수</th>
             <th scope="col">폴더 개수</th>
-            <th scope="col">하위 데이터 크기(byte)</th>
+            <th scope="col">하위 데이터 크기</th>
             <th scope="col">생성일</th>
         </tr>
         </thead>
@@ -52,10 +106,25 @@
                 <a th:href="@{'/files?path=' + ${dirctory.directoryFullPath}}"
                    th:text="${dirctory.name}">0</a>
             </td>
-            <td th:text="${dirctory.fileCount}">-1</td>
-            <td th:text="${dirctory.directoryCount}">-1</td>
-            <td th:text="${dirctory.totalByteSize}">-1</td>
-            <td th:text="${#temporals.format(dirctory.createdAt, 'yyyy-MM-dd HH:mm:ss')}">yyyy-MM-dd HH:mm:ss</td>
+            <td th:text="${dirctory.fileCount}" style="text-align: center">-1</td>
+            <td th:text="${dirctory.directoryCount}" style="text-align: center">-1</td>
+
+            <td th:if="${dirctory.totalByteSize lt 1000}"
+                th:text="${dirctory.totalByteSize} + ' bytes'">0
+            </td>
+            <td th:if="${1000 le dirctory.totalByteSize and dirctory.totalByteSize lt 1000000}"
+                th:text="${dirctory.totalByteSize * 1.0 / 1000} + ' KB'">0
+            </td>
+            <td th:if="${1000000 le dirctory.totalByteSize and dirctory.totalByteSize lt 1000000000}"
+                th:text="${dirctory.totalByteSize * 1.0 / 1000000 + ' MB'}">0
+            </td>
+            <td th:if="${1000000000 le dirctory.totalByteSize}"
+                th:text="${dirctory.totalByteSize * 1.0 / 1000000000 + ' GB'}">0
+            </td>
+
+            <td th:text="${#temporals.format(dirctory.createdAt, 'yyyy-MM-dd HH:mm:ss')}" style="text-align: center">
+                yyyy-MM-dd HH:mm:ss
+            </td>
         </tr>
         </tbody>
     </table>
@@ -66,20 +135,33 @@
     <table class="table table-striped table-hover"
            style="white-space: nowrap; max-width: 50%; margin-left:auto; margin-right:auto;">
         <thead>
-        <tr>
+        <tr style="text-align: center">
             <th>이름</th>
-            <th>데이터 크기(byte)</th>
+            <th>데이터 크기</th>
             <th>생성일</th>
             <th>다운로드</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="file : ${data.files}">
-            <td th:text="${file.name}">-1</td>
-            <td th:text="${file.byteSize}">-1</td>
-            <td th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm:ss')}">yyyy-MM-dd HH:mm:ss</td>
+            <td th:text="${file.name}">file_name</td>
+
+            <td th:if="${file.byteSize lt 1000}" th:text="${file.byteSize} + ' bytes'">0
+            </td>
+            <td th:if="${1000 le file.byteSize and file.byteSize lt 1000000}"
+                th:text="${file.byteSize * 1.0 / 1000} + ' KB'">0
+            </td>
+            <td th:if="${1000000 le file.byteSize and file.byteSize lt 1000000000}"
+                th:text="${file.byteSize * 1.0 / 1000000 + ' MB'}">0
+            </td>
+            <td th:if="${1000000000 le file.byteSize}" th:text="${file.byteSize * 1.0 / 1000000000 + ' GB'}">0
+            </td>
+
+            <td th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm:ss')}" style="text-align: center">
+                yyyy-MM-dd HH:mm:ss
+            </td>
             <td>
-                <a th:href="@{'/files/download?id=' + ${file.getId()}}">다운로드</a>
+                <a th:href="@{'/files/download?id=' + ${file.getId()}}" style="text-align: center">다운로드</a>
             </td>
         </tr>
         </tbody>
