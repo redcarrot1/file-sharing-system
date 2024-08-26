@@ -56,4 +56,15 @@ public class DirectoryEntity extends MetaData {
     public boolean isRoot() {
         return this.getParent() == null;
     }
+
+    public void deleteChild(FileEntity fileEntity) {
+        String targetId = fileEntity.getId();
+        boolean result = this.children.removeIf(
+                metaData -> metaData.getId().equals(targetId)
+        );
+        if (result) {
+            this.fileCount--;
+            this.totalByteSize -= fileEntity.getByteSize();
+        }
+    }
 }

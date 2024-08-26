@@ -25,4 +25,7 @@ public class FileRepository {
                 .toList();
     }
 
+    public boolean deleteById(String id) {
+        return metaDataRepository.deleteById(id);
+    }
 }

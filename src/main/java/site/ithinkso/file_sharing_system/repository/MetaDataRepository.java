@@ -1,5 +1,6 @@
 package site.ithinkso.file_sharing_system.repository;
 
+import com.mongodb.client.result.DeleteResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -37,6 +38,14 @@ class MetaDataRepository {
 
         MetaData andReplace = mongoOps.findAndReplace(query, metaData);
         return andReplace != null;
+    }
+
+    public boolean deleteById(String id) {
+        Criteria criteria = Criteria.where("id").is(id);
+        Query query = Query.query(criteria);
+
+        DeleteResult result = mongoOps.remove(query, MetaData.class);
+        return result.wasAcknowledged();
     }
 
 }

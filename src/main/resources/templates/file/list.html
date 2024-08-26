@@ -40,6 +40,28 @@
             }
             return true;
         }
+
+        function deleteResource(id) {
+            const currentUrl = window.location.origin;
+            fetch(`${currentUrl}/files?id=${id}`, {
+                method: 'DELETE',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data === true) {
+                        alert('성공: 삭제되었습니다.');
+                    } else {
+                        alert('실패: 삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('오류: 요청 중 문제가 발생했습니다.');
+                })
+                .finally(() => {
+                    window.location.reload();
+                });
+        }
     </script>
 </head>
 <body>
@@ -59,7 +81,7 @@
     <span th:if="${1000000000 le data.totalByteSize}"
           th:text="${data.totalByteSize * 1.0 / 1000000000 + ' GB'}">0</span>
 
-    <span th:text="' ('+${#numbers.formatInteger(data.totalByteSize, 3, 'COMMA') + ' bytes)'}">0</span>
+    <span th:text="' ('+${#numbers.formatInteger(data.totalByteSize, 1, 'COMMA') + ' bytes)'}">0</span>
     <br/>
 
     <button th:unless="${#strings.equals(param.path, '/')}" class="btn btn-warning btn-sm" onclick="upDir()"
@@ -140,6 +162,7 @@
             <th>데이터 크기</th>
             <th>생성일</th>
             <th>다운로드</th>
+            <th>삭제하기</th>
         </tr>
         </thead>
         <tbody>
@@ -160,8 +183,13 @@
             <td th:text="${#temporals.format(file.createdAt, 'yyyy-MM-dd HH:mm:ss')}" style="text-align: center">
                 yyyy-MM-dd HH:mm:ss
             </td>
+            <td style="text-align: center">
+                <a th:href="@{'/files/download?id=' + ${file.getId()}}" class="btn btn-primary btn-sm">다운로드</a>
+            </td>
             <td>
-                <a th:href="@{'/files/download?id=' + ${file.getId()}}" style="text-align: center">다운로드</a>
+                <button th:parameter="${file.getId()}"
+                        onclick="deleteResource(this.getAttribute('parameter'))" class="btn btn-danger btn-sm">삭제
+                </button>
             </td>
         </tr>
         </tbody>
