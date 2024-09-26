@@ -26,4 +26,8 @@ public class MetaData {
         this.createdAt = createdAt;
         this.parent = parent;
     }
+
+    public boolean isNameEquals(String name) {
+        return this.name.equals(name);
+    }
 }

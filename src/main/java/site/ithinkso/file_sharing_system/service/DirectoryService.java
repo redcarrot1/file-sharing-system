@@ -23,7 +23,7 @@ public class DirectoryService {
         DirectoryEntity parent = directoryRepository.findByPath(path)
                 .orElseThrow(() -> new IllegalArgumentException("Directory not found"));
 
-        validateAlreadyExistsName(parent, name);
+        validateDuplicatedName(parent, name);
 
         String directoryFullPath = createFullPath(path, name);
         LocalDateTime createAt = LocalDateTime.now();
@@ -36,13 +36,11 @@ public class DirectoryService {
         return directory;
     }
 
-    private void validateAlreadyExistsName(DirectoryEntity parent, String name) {
-        parent.getChildren().stream()
-                .filter(directory -> directory.getName().equals(name))
-                .findAny()
-                .ifPresent(directory -> {
-                    throw new IllegalArgumentException("Directory already exists");
-                });
+    private void validateDuplicatedName(DirectoryEntity parent, String name) {
+        boolean isDuplicatedName = parent.haveChildrenName(name);
+        if (isDuplicatedName) {
+            throw new IllegalArgumentException("Directory already exists");
+        }
     }
 
     private String createFullPath(String path, String name) {

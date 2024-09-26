@@ -67,4 +67,9 @@ public class DirectoryEntity extends MetaData {
             this.totalByteSize -= fileEntity.getByteSize();
         }
     }
+
+    public boolean haveChildrenName(String name) {
+        return this.children.stream()
+                .anyMatch(metaData -> metaData.isNameEquals(name));
+    }
 }

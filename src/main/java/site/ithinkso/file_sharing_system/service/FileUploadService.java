@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
-import site.ithinkso.file_sharing_system.domain.MetaData;
 import site.ithinkso.file_sharing_system.repository.DirectoryRepository;
 import site.ithinkso.file_sharing_system.repository.FileRepository;
 
@@ -16,9 +15,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -59,14 +56,9 @@ public class FileUploadService {
     }
 
     private void validateDuplicatedName(DirectoryEntity parent, List<MultipartFile> multipartFiles) {
-        Set<String> existedNameSet = parent.getChildren().stream()
-                .map(MetaData::getName)
-                .collect(Collectors.toSet());
-
         boolean isDuplicatedName = multipartFiles.stream()
                 .map(MultipartFile::getOriginalFilename)
-                .anyMatch(existedNameSet::contains);
-
+                .anyMatch(parent::haveChildrenName);
         if (isDuplicatedName) {
             throw new IllegalArgumentException("Duplicated file name");
         }
