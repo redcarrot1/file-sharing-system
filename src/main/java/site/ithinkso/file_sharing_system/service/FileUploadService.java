@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
+import site.ithinkso.file_sharing_system.domain.MetaData;
 import site.ithinkso.file_sharing_system.repository.DirectoryRepository;
 import site.ithinkso.file_sharing_system.repository.FileRepository;
 
@@ -15,7 +16,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -33,18 +36,9 @@ public class FileUploadService {
         DirectoryEntity parent = directoryRepository.findByPath(directoryPath)
                 .orElseThrow(() -> new IllegalArgumentException("Directory not found"));
 
-        List<FileEntity> storedFiles = multipartFiles.stream()
-                .filter(multipartFile -> !multipartFile.isEmpty())
-                .map(multipartFile -> {
-                    try {
-                        return storeFile(parent, multipartFile);
-                    } catch (IOException e) {
-                        log.error("Error occurred while storing file", e);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        validateDuplicatedName(parent, multipartFiles);
+
+        List<FileEntity> storedFiles = saveFiles(parent, multipartFiles);
         fileRepository.saveAll(storedFiles);
 
         parent.addChildren(storedFiles);
@@ -62,6 +56,35 @@ public class FileUploadService {
         directoryRepository.updateDirectoryUptoRoot(grandparent.getId(), storedFiles.size(), 0, totalByteSize);
 
         return storedFiles;
+    }
+
+    private void validateDuplicatedName(DirectoryEntity parent, List<MultipartFile> multipartFiles) {
+        Set<String> existedNameSet = parent.getChildren().stream()
+                .map(MetaData::getName)
+                .collect(Collectors.toSet());
+
+        boolean isDuplicatedName = multipartFiles.stream()
+                .map(MultipartFile::getOriginalFilename)
+                .anyMatch(existedNameSet::contains);
+
+        if (isDuplicatedName) {
+            throw new IllegalArgumentException("Duplicated file name");
+        }
+    }
+
+
+    private List<FileEntity> saveFiles(DirectoryEntity parent, List<MultipartFile> multipartFiles) {
+        return multipartFiles.stream()
+                .map(multipartFile -> {
+                    try {
+                        return storeFile(parent, multipartFile);
+                    } catch (IOException e) {
+                        log.error("Error occurred while storing file", e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     private FileEntity storeFile(DirectoryEntity parent, MultipartFile multipartFile) throws IOException {

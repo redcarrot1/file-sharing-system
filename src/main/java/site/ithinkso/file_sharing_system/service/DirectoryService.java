@@ -14,7 +14,7 @@ public class DirectoryService {
     private final DirectoryRepository directoryRepository;
 
     public DirectoryEntity findDirectory(String path) {
-        // TODO Lazy loading이 언제 발생되는가?
+        // Eager loading
         return directoryRepository.findByPath(path)
                 .orElseThrow(() -> new IllegalArgumentException("Directory not found"));
     }

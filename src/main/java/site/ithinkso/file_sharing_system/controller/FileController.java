@@ -44,7 +44,11 @@ public class FileController {
     @PostMapping
     public String saveFile(@RequestParam(value = "path", defaultValue = "/") String path,
                            @RequestParam("files") List<MultipartFile> files) {
-        uploadService.saveFiles(path, files);
+        List<MultipartFile> multipartFiles = files.stream()
+                .filter(multipartFile -> !multipartFile.isEmpty())
+                .toList();
+
+        uploadService.saveFiles(path, multipartFiles);
         return "redirect:/files?path=" + path;
     }
 

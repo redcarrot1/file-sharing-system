@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
+import site.ithinkso.file_sharing_system.domain.MetaData;
 import site.ithinkso.file_sharing_system.domain.User;
 
 import java.time.LocalDateTime;
@@ -26,8 +27,8 @@ public class InitialData {
 
     @PostConstruct
     public void init() {
-        mongoOps.dropCollection("metadata");
-        mongoOps.dropCollection("user");
+        mongoOps.dropCollection(MetaData.class);
+        mongoOps.dropCollection(User.class);
 
         saveUser();
 
