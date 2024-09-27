@@ -28,4 +28,8 @@ public class FileRepository {
     public boolean deleteById(String id) {
         return metaDataRepository.deleteById(id);
     }
+
+    public void updateEntity(FileEntity fileEntity) {
+        metaDataRepository.updateEntity(fileEntity);
+    }
 }

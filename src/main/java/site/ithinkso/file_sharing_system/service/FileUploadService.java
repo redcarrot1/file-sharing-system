@@ -9,6 +9,7 @@ import site.ithinkso.file_sharing_system.domain.DirectoryEntity;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
 import site.ithinkso.file_sharing_system.repository.DirectoryRepository;
 import site.ithinkso.file_sharing_system.repository.FileRepository;
+import site.ithinkso.file_sharing_system.service.thumbnail.ThumbnailService;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class FileUploadService {
 
     private final FileRepository fileRepository;
     private final DirectoryRepository directoryRepository;
+    private final ThumbnailService thumbnailService;
 
     public List<FileEntity> saveFiles(String directoryPath, List<MultipartFile> multipartFiles) {
         DirectoryEntity parent = directoryRepository.findByPath(directoryPath)
@@ -35,22 +37,16 @@ public class FileUploadService {
 
         validateDuplicatedName(parent, multipartFiles);
 
-        List<FileEntity> storedFiles = saveFiles(parent, multipartFiles);
+        List<FileEntity> storedFiles = storeFiles(parent, multipartFiles);
         fileRepository.saveAll(storedFiles);
+        for (FileEntity fileEntity : storedFiles) {
+            thumbnailService.createThumbnail(fileEntity);
+        }
 
         parent.addChildren(storedFiles);
         directoryRepository.updateEntity(parent);
 
-        long totalByteSize = storedFiles.stream()
-                .mapToLong(FileEntity::getByteSize)
-                .sum();
-
-        if (parent.isRoot()) {
-            return storedFiles;
-        }
-
-        DirectoryEntity grandparent = parent.getParent();
-        directoryRepository.updateDirectoryUptoRoot(grandparent.getId(), storedFiles.size(), 0, totalByteSize);
+        updateDirectoryUptoRoot(parent, storedFiles);
 
         return storedFiles;
     }
@@ -64,8 +60,7 @@ public class FileUploadService {
         }
     }
 
-
-    private List<FileEntity> saveFiles(DirectoryEntity parent, List<MultipartFile> multipartFiles) {
+    private List<FileEntity> storeFiles(DirectoryEntity parent, List<MultipartFile> multipartFiles) {
         return multipartFiles.stream()
                 .map(multipartFile -> {
                     try {
@@ -101,6 +96,19 @@ public class FileUploadService {
         int pos = originalFilename.lastIndexOf(".");
         return originalFilename.substring(pos + 1);
     }
+
+    private void updateDirectoryUptoRoot(DirectoryEntity parent, List<FileEntity> storedFiles) {
+        if (parent.isRoot()) {
+            return;
+        }
+
+        long totalByteSize = storedFiles.stream()
+                .mapToLong(FileEntity::getByteSize)
+                .sum();
+        DirectoryEntity grandparent = parent.getParent();
+        directoryRepository.updateDirectoryUptoRoot(grandparent.getId(), storedFiles.size(), 0, totalByteSize);
+    }
+
 
     public String getFullPath(String filename) {
         return fileDir + filename;

@@ -17,22 +17,22 @@ class MetaDataRepository {
 
     private final MongoOperations mongoOps;
 
-    public <T> Optional<T> findById(String id, Class<T> entityClass) {
+    <T> Optional<T> findById(String id, Class<T> entityClass) {
         T entity = mongoOps.findById(id, entityClass);
         return Optional.ofNullable(entity);
     }
 
-    public MetaData save(MetaData storedFile) {
+    MetaData save(MetaData storedFile) {
         return mongoOps.insert(storedFile);
     }
 
-    public List<MetaData> saveAll(List<? extends MetaData> storedFiles) {
+    List<MetaData> saveAll(List<? extends MetaData> storedFiles) {
         return storedFiles.stream()
                 .map(this::save)
                 .toList();
     }
 
-    public boolean updateEntity(MetaData metaData) {
+    boolean updateEntity(MetaData metaData) {
         Criteria criteria = Criteria.where("id").is(metaData.getId());
         Query query = Query.query(criteria);
 
@@ -40,7 +40,7 @@ class MetaDataRepository {
         return andReplace != null;
     }
 
-    public boolean deleteById(String id) {
+    boolean deleteById(String id) {
         Criteria criteria = Criteria.where("id").is(id);
         Query query = Query.query(criteria);
 
