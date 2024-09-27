@@ -40,6 +40,13 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // image thumbnail
+    implementation 'net.coobird:thumbnailator:0.4.20'
+
+    // pdf thumbnail
+    implementation 'org.apache.pdfbox:pdfbox:2.0.13'
+    implementation 'org.apache.pdfbox:pdfbox-tools:2.0.13'
 }
 
 tasks.named('test') {
