@@ -4,6 +4,12 @@
     <meta th:replace="~{fragment/head :: headFrag('파일 목록')}"/>
     <meta th:replace="~{fragment/head :: styleFrag}"/>
     <script>
+
+        function preview(id) {
+            const previewImage = document.getElementById('preview-image');
+            previewImage.src = `/images/preview/${id}`;
+        }
+
         function upDir() {
             const urlParams = new URLSearchParams(window.location.search);
             let path = urlParams.get('path');
@@ -166,7 +172,9 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="file : ${data.files}">
+        <tr th:each="file : ${data.files}" class="file-data" th:parameter="${file.id}"
+            onclick="preview(this.getAttribute('parameter'))">
+
             <td th:text="${file.name}">file_name</td>
 
             <td th:if="${file.byteSize lt 1000}" th:text="${file.byteSize} + ' bytes'">0
@@ -187,13 +195,17 @@
                 <a th:href="@{'/files/download?id=' + ${file.getId()}}" class="btn btn-primary btn-sm">다운로드</a>
             </td>
             <td>
-                <button th:parameter="${file.getId()}"
+                <button th:parameter="${file.id}"
                         onclick="deleteResource(this.getAttribute('parameter'))" class="btn btn-danger btn-sm">삭제
                 </button>
             </td>
         </tr>
         </tbody>
     </table>
+
+    <h2>미리보기</h2>
+    <img src="" id="preview-image">
+
 </div>
 
 </body>
