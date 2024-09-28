@@ -24,7 +24,11 @@ public class ImageController {
         if (optionalFileEntity.isEmpty()) {
             return null;
         }
+
         FileEntity fileEntity = optionalFileEntity.get();
+        if (fileEntity.getThumbnailFullPath() == null) {
+            return null;
+        }
 
         return new UrlResource("file:" + fileEntity.getThumbnailFullPath());
     }

@@ -47,6 +47,9 @@ dependencies {
     // pdf thumbnail
     implementation 'org.apache.pdfbox:pdfbox:2.0.13'
     implementation 'org.apache.pdfbox:pdfbox-tools:2.0.13'
+
+    // video thumbnail
+    implementation 'org.jcodec:jcodec-javase:0.2.5'
 }
 
 tasks.named('test') {
