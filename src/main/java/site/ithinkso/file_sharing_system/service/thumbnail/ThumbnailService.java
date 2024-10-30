@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 import site.ithinkso.file_sharing_system.domain.FileEntity;
 import site.ithinkso.file_sharing_system.repository.FileRepository;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
@@ -31,19 +31,18 @@ public class ThumbnailService {
             return;
         }
 
-        File file = null; // cache
+        Path path = null; // cache
         for (ThumbnailHandler thumbnailHandler : thumbnailHandlers) {
             if (thumbnailHandler.supported(fileExtension)) {
-                if (file == null) {
-                    file = fileEntity.getFile();
+                if (path == null) {
+                    path = fileEntity.getPath();
                 }
 
                 try {
-                    String thumbnailFullPath = thumbnailHandler.generateThumbnail(file);
+                    String thumbnailFullPath = thumbnailHandler.generateThumbnail(path);
                     fileEntity.setThumbnailPath(thumbnailFullPath);
                     fileRepository.updateEntity(fileEntity);
                     log.info("Thumbnail generated for file: {}", fileEntity.getStoreFullPath());
-
                     return;
                 } catch (Exception e) {
                     log.error("Exception occurred while generating thumbnail. File path={}, handler={}",

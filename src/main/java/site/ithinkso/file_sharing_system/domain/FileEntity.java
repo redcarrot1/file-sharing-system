@@ -2,7 +2,8 @@ package site.ithinkso.file_sharing_system.domain;
 
 import lombok.Getter;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 @Getter
@@ -18,12 +19,12 @@ public class FileEntity extends MetaData {
         this.storeFullPath = storeFullPath;
     }
 
-    public File getFile() {
-        File file = new File(storeFullPath);
-        if (!file.exists()) {
-            throw new IllegalArgumentException("File is not physically exists");
+    public Path getPath() {
+        Path path = Path.of(storeFullPath);
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("File is not physically exists");
         }
-        return file;
+        return path;
     }
 
     public void setThumbnailPath(String thumbnailFullPath) {

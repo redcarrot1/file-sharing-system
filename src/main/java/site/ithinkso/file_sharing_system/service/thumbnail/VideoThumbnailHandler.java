@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Set;
 
 @Component
@@ -38,12 +38,13 @@ public class VideoThumbnailHandler implements ThumbnailHandler {
     }
 
     @Override
-    public String generateThumbnail(File file) throws IOException {
-        String filename = file.getName().split("\\.")[0];
+    public String generateThumbnail(Path path) throws IOException {
+        String filenameWithFormat = path.getFileName().toString();
+        String filename = filenameWithFormat.split("\\.")[0];
         String fullPathName = thumbnailDir + filename + "." + outputFormat;
 
         try {
-            FrameGrab frameGrab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(file));
+            FrameGrab frameGrab = FrameGrab.createFrameGrab(NIOUtils.readableChannel(path.toFile()));
 
             frameGrab.seekToSecondPrecise(0);
             Picture picture = frameGrab.getNativeFrame();
@@ -52,7 +53,7 @@ public class VideoThumbnailHandler implements ThumbnailHandler {
             Thumbnails.of(bufferedImage)
                     .outputFormat(outputFormat)
                     .size(thumbnailWidth, thumbnailHeight)
-                    .toFile(new File(fullPathName));
+                    .toFile(fullPathName);
 
         } catch (JCodecException e) {
             throw new RuntimeException("Failed to generate thumbnail");

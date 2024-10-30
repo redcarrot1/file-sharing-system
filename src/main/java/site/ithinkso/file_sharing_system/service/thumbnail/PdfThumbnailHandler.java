@@ -6,13 +6,13 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Component
 public class PdfThumbnailHandler implements ThumbnailHandler {
@@ -34,23 +34,24 @@ public class PdfThumbnailHandler implements ThumbnailHandler {
     }
 
     @Override
-    public String generateThumbnail(File file) throws IOException {
-        PDFRenderer pdfRenderer = createPDFRenderer(file);
+    public String generateThumbnail(Path path) throws IOException {
+        PDFRenderer pdfRenderer = createPDFRenderer(Files.newInputStream(path));
         BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
 
-        String filename = StringUtils.getFilename(file.getName());
+        String filenameWithFormat = path.getFileName().toString();
+        String filename = filenameWithFormat.split("\\.")[0];
         String fullPathName = thumbnailDir + filename + "." + outputFormat;
 
         Thumbnails.of(bufferedImage)
                 .outputFormat(outputFormat)
                 .size(thumbnailWidth, thumbnailHeight)
-                .toFile(new File(fullPathName));
+                .toFile(fullPathName);
 
         return fullPathName;
     }
 
-    private PDFRenderer createPDFRenderer(File file) throws IOException {
-        BufferedInputStream pdf = new BufferedInputStream(Files.newInputStream(file.toPath()));
+    private PDFRenderer createPDFRenderer(InputStream inputStream) throws IOException {
+        BufferedInputStream pdf = new BufferedInputStream(inputStream);
         PDDocument pdfDoc = PDDocument.load(pdf);
         return new PDFRenderer(pdfDoc);
     }

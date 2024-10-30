@@ -5,8 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,23 +35,26 @@ public class ImageThumbnailHandler implements ThumbnailHandler {
     }
 
     @Override
-    public String generateThumbnail(File file) throws IOException {
-        String outputFormat = getOutputFormat(file);
-        String filename = file.getName().split("\\.")[0];
+    public String generateThumbnail(Path path) throws IOException {
+        String fileNameWithFormat = path.getFileName().toString();
+
+        String filename = fileNameWithFormat.split("\\.")[0];
+        String outputFormat = getOutputFormat(fileNameWithFormat);
+
         String fullPathName = thumbnailDir + filename + "." + outputFormat;
 
-        Thumbnails.of(file)
+        Thumbnails.of(Files.newInputStream(path))
                 .size(thumbnailWidth, thumbnailHeight)
                 .outputFormat(outputFormat)
-                .toFile(new File(fullPathName));
+                .toFile(fullPathName);
 
         return fullPathName;
     }
 
-    private String getOutputFormat(File file) {
-        String fileExtension = StringUtils.getFilenameExtension(file.getName());
+    private String getOutputFormat(String fileName) {
+        String fileExtension = StringUtils.getFilenameExtension(fileName);
         if (fileExtension == null) {
-            return null;
+            return "jpg";
         }
         return outputFormats.getOrDefault(fileExtension.toLowerCase(), "jpg");
     }
